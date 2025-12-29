@@ -1,7 +1,9 @@
-/* src/index.ts */
-console.log(">>>>>>>>>>>>>> CHAINCODE STARTING <<<<<<<<<<<<<<"); // Debug log
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-import { OrganicAssetContract } from './organicAsset';
-export { OrganicAssetContract } from './organicAsset';
-export const contracts: any[] = [ OrganicAssetContract ]; 
-console.log(">>>>>>>>>>>>>> CONTRACTS EXPORTED <<<<<<<<<<<<<<"); // Debug log
+import { TransportContract } from './contracts/transportContract';
+
+export { TransportContract } from './contracts/transportContract';
+
+export const contracts: any[] = [ TransportContract ];
