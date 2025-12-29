@@ -4,6 +4,7 @@
 
 import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
 import { FoodBatch } from '../assets/foodBatch';
+import { DateUtils } from '../utils/dateUtils';
 
 @Info({title: 'TransportContract', description: 'Secure Transport Traceability with Merkle Proofs'})
 export class TransportContract extends Contract {
@@ -29,11 +30,12 @@ export class TransportContract extends Contract {
             asset.batchID = batchID;
             asset.farmerName = farmerName;
         }
+        
 
         asset.currentOwner = newOwner;
         asset.pickupLocation = location;
         asset.status = 'IN_TRANSIT';
-        asset.timestamp = new Date().toISOString();
+        asset.timestamp = DateUtils.getTxDateISO(ctx);
 
         // Initialize "Null" sensor data until trip ends
         asset.minTemp = 0;
@@ -59,6 +61,7 @@ export class TransportContract extends Contract {
         const assetString = await this.ReadAsset(ctx, batchID);
         const asset = JSON.parse(assetString) as FoodBatch;
 
+        
         // Update with Transport Data
         asset.minTemp = parseFloat(min);
         asset.maxTemp = parseFloat(max);
@@ -66,7 +69,8 @@ export class TransportContract extends Contract {
         asset.merkleRoot = merkleRoot; // The Proof of Integrity
         
         asset.status = 'DELIVERED';
-        asset.timestamp = new Date().toISOString();
+        
+        asset.timestamp = DateUtils.getTxDateISO(ctx);
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));
         console.info(`[Blockchain] Trip Completed for ${batchID}. Integrity Root: ${merkleRoot}`);
