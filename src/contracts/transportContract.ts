@@ -12,10 +12,19 @@ export class TransportContract extends Contract {
     // =========================================================================
     // 1. Confirm Pickup (Start of Journey)
     // =========================================================================
-    // If Online: Called immediately at farm.
-    // If Offline: Data is cached on phone and syncs later.
     @Transaction()
-    public async ConfirmPickup(ctx: Context, batchID: string, farmerName: string, newOwner: string, location: string): Promise<void> {
+    public async ConfirmPickup(
+        ctx: Context, 
+        batchID: string, 
+        produceType: string, 
+        farmerName: string, 
+        supplierId: string, 
+        transporterId: string, 
+        location: string, 
+        weightKg: string, 
+        invoiceHash: string, 
+        notes: string
+    ): Promise<void> {
         const exists = await this.AssetExists(ctx, batchID);
         
         let asset: FoodBatch;
@@ -28,12 +37,18 @@ export class TransportContract extends Contract {
             // New Asset (Driver creates it)
             asset = new FoodBatch();
             asset.batchID = batchID;
-            asset.farmerName = farmerName;
         }
         
-
-        asset.currentOwner = newOwner;
+        // Map new frontend/backend payload data
+        asset.produceType = produceType;
+        asset.farmerName = farmerName;
+        asset.supplierId = supplierId;
+        asset.transporterId = transporterId; // Supabase Auth ID
         asset.pickupLocation = location;
+        asset.weightKg = weightKg;
+        asset.invoiceHash = invoiceHash;     // IPFS CID
+        asset.notes = notes;
+
         asset.status = 'IN_TRANSIT';
         asset.timestamp = DateUtils.getTxDateISO(ctx);
 
@@ -44,13 +59,12 @@ export class TransportContract extends Contract {
         asset.merkleRoot = 'PENDING';
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));
-        console.info(`[Blockchain] Pickup Confirmed for ${batchID}`);
+        console.info(`[Blockchain] Pickup Confirmed for ${batchID} by Transporter ${transporterId}`);
     }
 
     // =========================================================================
     // 2. Complete Trip (End of Journey - The Sync)
     // =========================================================================
-    // This receives the "Novelty" payload: Summary Stats + Merkle Root
     @Transaction()
     public async CompleteTrip(ctx: Context, batchID: string, min: string, max: string, avg: string, merkleRoot: string): Promise<void> {
         const exists = await this.AssetExists(ctx, batchID);
@@ -61,7 +75,6 @@ export class TransportContract extends Contract {
         const assetString = await this.ReadAsset(ctx, batchID);
         const asset = JSON.parse(assetString) as FoodBatch;
 
-        
         // Update with Transport Data
         asset.minTemp = parseFloat(min);
         asset.maxTemp = parseFloat(max);
@@ -69,7 +82,6 @@ export class TransportContract extends Contract {
         asset.merkleRoot = merkleRoot; // The Proof of Integrity
         
         asset.status = 'DELIVERED';
-        
         asset.timestamp = DateUtils.getTxDateISO(ctx);
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));

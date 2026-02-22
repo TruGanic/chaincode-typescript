@@ -11,22 +11,36 @@ export class FoodBatch {
     public batchID: string;
 
     @Property()
-    public farmerName: string;
+    public produceType: string;
 
     @Property()
-    public currentOwner: string;
+    public supplierId: string;
+
+    @Property()
+    public farmerName: string;
+
+    // Stores the Supabase UUID of the transport agent
+    @Property()
+    public transporterId: string; 
 
     @Property()
     public pickupLocation: string;
+
+    @Property()
+    public weightKg: string;
+
+    // Stores the IPFS CID for the uploaded invoice
+    @Property()
+    public invoiceHash: string;
+
+    @Property()
+    public notes: string;
 
     // Status: 'HARVESTED', 'IN_TRANSIT', 'DELIVERED', 'REJECTED'
     @Property()
     public status: string; 
 
     // --- NOVELTY: OFFLINE DATA SYNC ---
-    // We do NOT store 10,000 sensor readings here. 
-    // We store the aggregated stats and the cryptographic proof (Merkle Root).
-    
     @Property()
     public minTemp: number;
 
@@ -36,7 +50,6 @@ export class FoodBatch {
     @Property()
     public avgTemp: number;
 
-    // The Merkle Root proves the integrity of the offline sensor log
     @Property()
     public merkleRoot: string; 
 
