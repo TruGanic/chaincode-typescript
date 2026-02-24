@@ -38,7 +38,8 @@ export class TransportContract extends Contract {
             asset = new FoodBatch();
             asset.batchID = batchID;
         }
-        
+        const currentTime = DateUtils.getTxDateISO(ctx);
+
         // Map new frontend/backend payload data
         asset.produceType = produceType;
         asset.farmerName = farmerName;
@@ -50,7 +51,12 @@ export class TransportContract extends Contract {
         asset.notes = notes;
 
         asset.status = 'IN_TRANSIT';
-        asset.timestamp = DateUtils.getTxDateISO(ctx);
+        
+        asset.pickupTimeStamp = currentTime;
+
+        // Initialize deliveryTimestamp as empty or "PENDING"
+        asset.deliveryTimestamp = '';
+        asset.lastUpdated = currentTime;
 
         // Initialize "Null" sensor data until trip ends
         asset.minTemp = 0;
@@ -75,6 +81,8 @@ export class TransportContract extends Contract {
         const assetString = await this.ReadAsset(ctx, batchID);
         const asset = JSON.parse(assetString) as FoodBatch;
 
+        const currentTime = DateUtils.getTxDateISO(ctx);
+
         // Update with Transport Data
         asset.minTemp = parseFloat(min);
         asset.maxTemp = parseFloat(max);
@@ -82,7 +90,8 @@ export class TransportContract extends Contract {
         asset.merkleRoot = merkleRoot; // The Proof of Integrity
         
         asset.status = 'DELIVERED';
-        asset.timestamp = DateUtils.getTxDateISO(ctx);
+        asset.deliveryTimestamp = currentTime; // Record the end
+        asset.lastUpdated = currentTime;        // Update the sync marker
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));
         console.info(`[Blockchain] Trip Completed for ${batchID}. Integrity Root: ${merkleRoot}`);

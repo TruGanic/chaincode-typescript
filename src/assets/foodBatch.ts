@@ -54,5 +54,11 @@ export class FoodBatch {
     public merkleRoot: string; 
 
     @Property()
-    public timestamp: string;
+    public pickupTimeStamp:string;
+
+    @Property()
+    public deliveryTimestamp:string;
+
+    @Property()
+    public lastUpdated: string;
 }
