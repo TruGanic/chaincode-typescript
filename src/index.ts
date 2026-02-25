@@ -3,7 +3,13 @@
  */
 
 import { TransportContract } from './contracts/transportContract';
+import { RetailerContract } from './contracts/retailerContract'; // Import the new contract
 
 export { TransportContract } from './contracts/transportContract';
+export { RetailerContract } from './contracts/retailerContract'; // Export for external visibility
 
-export const contracts: any[] = [ TransportContract ];
+// Register both contracts here
+export const contracts: any[] = [ 
+    TransportContract, 
+    RetailerContract 
+];
