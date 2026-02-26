@@ -1,7 +1,3 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
 
 @Info({title: 'RetailerContract', description: 'Handles the final receipt and audit of food batches'})
