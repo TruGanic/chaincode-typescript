@@ -1,32 +1,28 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
 import { FoodBatch } from '../assets/foodBatch';
 import { DateUtils } from '../utils/dateUtils';
 
-@Info({title: 'TransportContract', description: 'Secure Transport Traceability with Merkle Proofs'})
+@Info({ title: 'TransportContract', description: 'Secure Transport Traceability with Merkle Proofs' })
 export class TransportContract extends Contract {
 
-    // =========================================================================
+
     // 1. Confirm Pickup (Start of Journey)
-    // =========================================================================
+
     @Transaction()
     public async ConfirmPickup(
-        ctx: Context, 
-        batchID: string, 
-        produceType: string, 
-        farmerName: string, 
-        supplierId: string, 
-        transporterId: string, 
-        location: string, 
-        weightKg: string, 
-        invoiceHash: string, 
+        ctx: Context,
+        batchID: string,
+        produceType: string,
+        farmerName: string,
+        supplierId: string,
+        transporterId: string,
+        location: string,
+        weightKg: string,
+        invoiceHash: string,
         notes: string
     ): Promise<void> {
         const exists = await this.AssetExists(ctx, batchID);
-        
+
         let asset: FoodBatch;
 
         if (exists) {
@@ -40,7 +36,7 @@ export class TransportContract extends Contract {
         }
         const currentTime = DateUtils.getTxDateISO(ctx);
 
-        // Map new frontend/backend payload data
+        // Map backend payload data
         asset.produceType = produceType;
         asset.farmerName = farmerName;
         asset.supplierId = supplierId;
@@ -51,7 +47,7 @@ export class TransportContract extends Contract {
         asset.notes = notes;
 
         asset.status = 'IN_TRANSIT';
-        
+
         asset.pickupTimeStamp = currentTime;
 
         // Initialize deliveryTimestamp as empty or "PENDING"
@@ -62,17 +58,31 @@ export class TransportContract extends Contract {
         asset.minTemp = 0;
         asset.maxTemp = 0;
         asset.avgTemp = 0;
+        asset.minHumidity = 0;
+        asset.maxHumidity = 0;
+        asset.avgHumidity = 0;
         asset.merkleRoot = 'PENDING';
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));
         console.info(`[Blockchain] Pickup Confirmed for ${batchID} by Transporter ${transporterId}`);
     }
 
-    // =========================================================================
+
     // 2. Complete Trip (End of Journey - The Sync)
-    // =========================================================================
+
     @Transaction()
-    public async CompleteTrip(ctx: Context, batchID: string, min: string, max: string, avg: string, merkleRoot: string): Promise<void> {
+    public async CompleteTrip(
+        ctx: Context,
+        batchID: string,
+        minTemp: string,
+        maxTemp: string,
+        avgTemp: string,
+        minHumidity: string,
+        maxHumidity: string,
+        avgHumidity: string,
+        merkleRoot: string
+    ): Promise<void> {
+
         const exists = await this.AssetExists(ctx, batchID);
         if (!exists) {
             throw new Error(`Batch ${batchID} not found. Ensure Pickup is synced first.`);
@@ -83,23 +93,24 @@ export class TransportContract extends Contract {
 
         const currentTime = DateUtils.getTxDateISO(ctx);
 
-        // Update with Transport Data
-        asset.minTemp = parseFloat(min);
-        asset.maxTemp = parseFloat(max);
-        asset.avgTemp = parseFloat(avg);
-        asset.merkleRoot = merkleRoot; // The Proof of Integrity
-        
+        asset.minTemp = parseFloat(minTemp);
+        asset.maxTemp = parseFloat(maxTemp);
+        asset.avgTemp = parseFloat(avgTemp);
+        asset.minHumidity = parseFloat(minHumidity);
+        asset.maxHumidity = parseFloat(maxHumidity);
+        asset.avgHumidity = parseFloat(avgHumidity);
+        asset.merkleRoot = merkleRoot;
         asset.status = 'DELIVERED';
-        asset.deliveryTimestamp = currentTime; // Record the end
-        asset.lastUpdated = currentTime;        // Update the sync marker
+        asset.deliveryTimestamp = currentTime;
+        asset.lastUpdated = currentTime;
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));
         console.info(`[Blockchain] Trip Completed for ${batchID}. Integrity Root: ${merkleRoot}`);
     }
 
-    // =========================================================================
+
     // 3. Read Asset (Query)
-    // =========================================================================
+
     @Transaction(false)
     @Returns('string')
     public async ReadAsset(ctx: Context, batchID: string): Promise<string> {
@@ -111,9 +122,9 @@ export class TransportContract extends Contract {
         return buffer.toString();
     }
 
-    // =========================================================================
+
     // Helper: Check Existence
-    // =========================================================================
+
     @Transaction(false)
     @Returns('boolean')
     public async AssetExists(ctx: Context, batchID: string): Promise<boolean> {

@@ -1,7 +1,3 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { TransportContract } from './contracts/transportContract';
 import { RetailerContract } from './contracts/retailerContract'; // Import the new contract
 

@@ -1,7 +1,3 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Object, Property } from 'fabric-contract-api';
 
 @Object()
@@ -49,6 +45,15 @@ export class FoodBatch {
 
     @Property()
     public avgTemp: number;
+
+    @Property()
+    public minHumidity:number;
+
+    @Property()
+    public maxHumidity:number;
+
+    @Property()
+    public avgHumidity:number;
 
     @Property()
     public merkleRoot: string; 
