@@ -65,5 +65,5 @@ export class FoodBatch {
     public deliveryTimestamp:string;
 
     @Property()
-    public lastUpdated: string;
+    public syncTimestamp: string;
 }

@@ -19,7 +19,8 @@ export class TransportContract extends Contract {
         location: string,
         weightKg: string,
         invoiceHash: string,
-        notes: string
+        notes: string,
+        pickupTimeStamp: string
     ): Promise<void> {
         const exists = await this.AssetExists(ctx, batchID);
 
@@ -48,11 +49,11 @@ export class TransportContract extends Contract {
 
         asset.status = 'IN_TRANSIT';
 
-        asset.pickupTimeStamp = currentTime;
+        asset.pickupTimeStamp = pickupTimeStamp;
 
         // Initialize deliveryTimestamp as empty or "PENDING"
         asset.deliveryTimestamp = '';
-        asset.lastUpdated = currentTime;
+        asset.syncTimestamp = currentTime;
 
         // Initialize "Null" sensor data until trip ends
         asset.minTemp = 0;
@@ -102,7 +103,7 @@ export class TransportContract extends Contract {
         asset.merkleRoot = merkleRoot;
         asset.status = 'DELIVERED';
         asset.deliveryTimestamp = currentTime;
-        asset.lastUpdated = currentTime;
+        asset.syncTimestamp = currentTime;
 
         await ctx.stub.putState(batchID, Buffer.from(JSON.stringify(asset)));
         console.info(`[Blockchain] Trip Completed for ${batchID}. Integrity Root: ${merkleRoot}`);
