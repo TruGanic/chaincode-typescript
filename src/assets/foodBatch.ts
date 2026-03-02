@@ -66,4 +66,16 @@ export class FoodBatch {
 
     @Property()
     public syncTimestamp: string;
+
+    @Property()
+    public farmerId: string; 
+
+    @Property()
+    public organicLevel: string;
+
+    @Property()
+    public plantedDate: string;
+
+    @Property()
+    public harvestedDate: string;
 }
